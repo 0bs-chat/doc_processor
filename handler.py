@@ -1,17 +1,15 @@
 import runpod
 import httpx
 from io import BytesIO
-from docling.document_converter import DocumentConverter, PdfFormatOption, ImageFormatOption, PowerpointFormatOption, WordFormatOption
+from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling_core.types.io import DocumentStream
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import (
     PdfPipelineOptions,
     TableFormerMode,
     EasyOcrOptions,
-    granite_picture_description,
-    PictureDescriptionVlmOptions
+    smolvlm_picture_description
 )
-import os
 
 # Configure enhanced pipeline with all enrichments enabled
 def create_enhanced_converter():
@@ -23,43 +21,28 @@ def create_enhanced_converter():
     # Enable all enrichment features
     pipeline_options.do_code_enrichment = True           # Code block understanding
     pipeline_options.do_formula_enrichment = True       # LaTeX formula extraction
+    pipeline_options.generate_picture_images = True
+    pipeline_options.images_scale = 2
     pipeline_options.do_picture_classification = True   # Classify image types
     pipeline_options.do_picture_description = True      # Generate image captions
+    pipeline_options.picture_description_options = smolvlm_picture_description
     
     # Enhanced table processing
     pipeline_options.do_table_structure = True
     pipeline_options.table_structure_options.do_cell_matching = True  # Map structure to PDF cells
     pipeline_options.table_structure_options.mode = TableFormerMode.ACCURATE  # Use most accurate mode
     
-    # Enhanced image processing
-    pipeline_options.generate_picture_images = True     # Extract images
-    pipeline_options.images_scale = 2                   # Higher resolution images
-    
     # Enhanced OCR options
     pipeline_options.do_ocr = True
     pipeline_options.ocr_options = EasyOcrOptions(
         force_full_page_ocr=True,    # OCR entire pages when needed
-        use_gpu=True                 # Use GPU if available
+        use_gpu=True,                # Use GPU if available
     )
     
-    # Use Granite Vision model for picture descriptions (high quality)
-    try:
-        pipeline_options.picture_description_options = granite_picture_description
-    except Exception as e:
-        print(f"Warning: Failed to set granite_picture_description: {e}")
-        from docling.datamodel.pipeline_options import PictureDescriptionVlmOptions
-        pipeline_options.picture_description_options = PictureDescriptionVlmOptions(
-            repo_id="ibm-granite/granite-vision-3.2-2b",
-            prompt="Describe this image in detail, including any text, charts, diagrams, and visual elements.",
-        )
-
     # Create converter with enhanced options
     converter = DocumentConverter(
         format_options={
-            InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options),
-            InputFormat.IMAGE: ImageFormatOption(pipeline_options=pipeline_options),
-            InputFormat.PPTX: PowerpointFormatOption(pipeline_options=pipeline_options),
-            InputFormat.DOCX: WordFormatOption(pipeline_options=pipeline_options),
+            InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
         }
     )
     
@@ -203,19 +186,6 @@ def handler(job):
         "total_failed": len([r for r in results if r.get("status") == "failed"])
     }
 
-# Prefetch models for faster cold starts (optional)
-def prefetch_models():
-    """Prefetch all models to avoid download delays during processing."""
-    try:
-        from docling.utils.model_downloader import download_models
-        print("Prefetching all models...")
-        download_models()
-        print("Models prefetched successfully!")
-    except Exception as e:
-        print(f"Model prefetch failed (will download on demand): {e}")
-
-# Uncomment to prefetch models during container startup
-# prefetch_models()
-
-print("Starting enhanced Docling serverless handler...")
-runpod.serverless.start({"handler": handler})
+if __name__ == "__main__":
+    print("Starting enhanced Docling serverless handler...")
+    runpod.serverless.start({"handler": handler})
