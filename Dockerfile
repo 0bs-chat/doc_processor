@@ -1,8 +1,8 @@
-FROM runpod/base:0.6.3-cuda12.6.2
+FROM nvidia/cuda:12.9.0-cudnn-devel-ubuntu22.04
 
-# Set python3.11 as the default python
-RUN ln -sf $(which python3.11) /usr/local/bin/python && \
-    ln -sf $(which python3.11) /usr/local/bin/python3
+# Install Python 3 and set it as the default interpreter
+RUN apt-get update && apt-get install -y python3 python3-pip && \
+    ln -sf $(which python3) /usr/local/bin/python
 
 # Install system dependencies for docling
 RUN apt-get update && apt-get install -y \
@@ -18,16 +18,15 @@ RUN apt-get update && apt-get install -y \
     
 # Add application files
 ADD requirements.txt .
-ADD handler.py .
-ADD test_input.json .
+ADD app.py .
+ADD processor.py .
 ADD preloader.py .
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 RUN uv pip install --upgrade -r /requirements.txt --no-cache-dir --system && uv run /preloader.py
 
-# Run the handler
-CMD uv run /handler.py
+CMD uv run /app.py
 
 # Build and push commands:
-# sudo docker build --platform linux/amd64 --tag mantrakp04/doc_processor:enhancedv3 . && sudo docker push mantrakp04/doc_processor:enhancedv3
-# sudo docker run -it --runtime=nvidia --rm mantrakp04/doc_processor:enhancedv3 /bin/bash -c 'tail -f /dev/null'
+# sudo docker build --platform linux/amd64 --tag mantrakp04/doc_processor:v1 . && sudo docker push mantrakp04/doc_processor:v1
+# sudo docker run -it --runtime=nvidia -p 7860:7860 --rm mantrakp04/doc_processor:v1 /bin/bash -c 'tail -f /dev/null'
