@@ -1,6 +1,6 @@
 import httpx
 from io import BytesIO
-from docling.document_converter import DocumentConverter, PdfFormatOption
+from docling.document_converter import DocumentConverter, PdfFormatOption, ImageFormatOption
 from docling_core.types.io import DocumentStream
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import (
@@ -19,7 +19,7 @@ if DEVICE_CAPABILITY not in VALID_CAPABILITIES:
     print(f"[Doc Processor] Unknown DEVICE_CAPABILITY='{DEVICE_CAPABILITY}', falling back to 'high'.")
     DEVICE_CAPABILITY = "high"
 
-def _build_pdf_options(capability: str) -> PdfFormatOption:
+def _build_pipeline_options(capability: str) -> PdfFormatOption:
     """Return a PdfFormatOption tuned for *capability* tier."""
 
     pipeline_options = PdfPipelineOptions()
@@ -64,19 +64,19 @@ def _build_pdf_options(capability: str) -> PdfFormatOption:
             use_gpu=True,
         )
 
-    return PdfFormatOption(pipeline_options=pipeline_options)
+    return pipeline_options
 
 def create_converter() -> DocumentConverter:
     """Create a DocumentConverter configured from environment variables."""
 
-    pdf_option = _build_pdf_options(DEVICE_CAPABILITY)
+    pipeline_options = _build_pipeline_options(DEVICE_CAPABILITY)
 
-    if AUTO_DETECT_PLATFORMS:
-        # Let Docling figure out the appropriate pipeline for each file type.
-        return DocumentConverter()
-    else:
-        # Restrict to PDF only with the prepared options.
-        return DocumentConverter(format_options={InputFormat.PDF: pdf_option})
+    format_options = {
+        InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options),
+        InputFormat.IMAGE: ImageFormatOption(pipeline_options=pipeline_options),
+    }
+
+    return DocumentConverter(format_options=format_options)
 
 converter = create_converter()
 
