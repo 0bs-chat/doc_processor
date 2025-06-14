@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.9.0-cudnn-devel-ubuntu22.04
+FROM nvidia/cuda:12.6.3-cudnn-devel-ubuntu22.04
 
 # Install Python 3 and set it as the default interpreter
 RUN apt-get update && apt-get install -y python3 python3-pip && \
@@ -15,15 +15,16 @@ RUN apt-get update && apt-get install -y \
     libgraphicsmagick1-dev \
     libatlas-base-dev \
     && rm -rf /var/lib/apt/lists/*
-    
-# Add application files
-ADD requirements.txt .
-ADD app.py .
-ADD processor.py .
-ADD preloader.py .
 
+# Install dependencies
+ADD requirements.txt .
+ADD preloader.py .
+ADD processor.py .
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 RUN uv pip install --upgrade -r /requirements.txt --no-cache-dir --system && uv run /preloader.py
+
+# Add application files
+ADD app.py .
 
 CMD uv run /app.py
 
