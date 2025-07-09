@@ -1,65 +1,260 @@
-![RunPod Worker Template](https://cpjrphpz3t5wbwfe.public.blob.vercel-storage.com/worker-template_banner-zUuCAjwDuvfsINR6vKBhYvvm3TnZFB.jpeg)
+# Document Processor Service
 
----
+A powerful document processing service built on [Docling](https://github.com/DS4SD/docling) that converts various document formats (PDF, DOCX, PPTX, images, etc.) into structured text with advanced enrichments like table extraction, formula recognition, and image analysis.
 
-This repository serves as a starting point for creating your own custom RunPod Serverless worker. It provides a basic structure and configuration that you can build upon.
+## ✨ Features
 
----
+### Document Format Support
+- **PDF Documents** - Advanced processing with OCR, table extraction, and layout analysis
+- **Microsoft Office** - Word (DOCX), PowerPoint (PPTX), Excel (XLSX)
+- **Images** - PNG, JPEG with vision-language model processing
+- **Text/Markup** - Markdown, HTML, AsciiDoc
+- **Structured Data** - CSV, JSON
+- **Scientific** - USPTO Patents (XML), JATS XML
+- **Audio** - Audio file processing
 
-[![RunPod](https://api.runpod.io/badge/runpod-workers/worker-template)](https://www.runpod.io/console/hub/runpod-workers/worker-template)
+### Advanced Processing Capabilities
+- **🔍 OCR** - Text extraction from images and scanned documents
+- **📊 Table Structure** - Intelligent table detection and extraction
+- **🧮 Formula Recognition** - Mathematical formula detection and conversion
+- **🖼️ Image Analysis** - Picture classification and description using vision models
+- **📝 Code Detection** - Code block identification and extraction
+- **📄 Layout Analysis** - Document structure understanding
 
----
+### Output Formats
+- **Markdown** - Clean, structured markdown output
+- **HTML** - Rich HTML with preserved formatting
+- **JSON** - Structured data with metadata
+- **Plain Text** - Simple text extraction
 
-## Getting Started
+## 🚀 Deployment Options
 
-1.  **Use this template:** Create a new repository based on this template or clone it directly.
-2.  **Customize:** Modify the code and configuration files to implement your specific task.
-3.  **Test:** Run your worker locally to ensure it functions correctly.
-4.  **Deploy:** Connect your repository to RunPod or build and push the Docker image manually.
+### 1. RunPod Serverless (Recommended)
+Deploy as a serverless worker on RunPod for automatic scaling and GPU acceleration.
 
-## Customizing Your Worker
+```bash
+# Build and deploy
+docker build --platform linux/amd64 -t your-registry/doc-processor .
+docker push your-registry/doc-processor
+```
 
-- **`handler.py`:** This is the core of your worker.
-  - The `handler(event)` function is the entry point executed for each job.
-  - The `event` dictionary contains the job input under the `"input"` key.
-  - Modify this function to load your models, process the input and return the desired output.
-  - Consider implementing model loading outside the handler (e.g., globally or in an initialization function) if models are large and reused across jobs.
-- **`requirements.txt`:** Add any Python libraries your worker needs to this file. These will be installed via `uv` when the Docker image is built.
-- **`Dockerfile`:**
-  - This file defines the Docker image for your worker.
-  - It starts from a [RunPod base image (`runpod/base`)](https://github.com/runpod/containers/tree/main/official-templates/base) which includes CUDA, mulitple versions of python, uv, jupyter notebook and common dependencies.
-  - It installs dependencies from `requirements.txt` using `uv`.
-  - It copies your `src` directory into the image.
-  - You might need to add system dependencies (`apt-get install ...`), environment variables (`ENV`), or other setup steps here if required by your specific application.
-- **`test_input.json`:** Modify this file to provide relevant sample input for local testing.
+### 2. FastAPI Service
+Run as a standalone web service with REST API.
 
-## Testing Locally
+```bash
+# Install dependencies
+pip install -r requirements.txt
 
-You can test your handler logic locally using the RunPod Python SDK. For detailed steps on setting up your local environment (creating a virtual environment, installing dependencies) and running the handler, please refer to the [RunPod Serverless Get Started Guide](https://docs.runpod.io/serverless/get-started).
+# Download models (first time only)
+python preloader.py
 
-1.  **Prepare Input:** Modify `test_input.json` with relevant sample input for your handler.
-2.  **Run the Handler:**
-    ```bash
-    python handler.py
-    ```
-    This will execute your `handler` function with the contents of [`test_input.json`](/test_input.json) as input.
+# Start the service
+python app.py
+```
 
-## Deploying to RunPod
+### 3. Docker Container
+```bash
+# Build
+docker build -t doc-processor .
 
-There are two main ways to deploy your worker:
+# Run FastAPI service
+docker run -p 8000:8000 -e SERVICE=fastapi doc-processor
 
-1.  **GitHub Integration (Recommended):**
+# Run RunPod handler
+docker run -e SERVICE=runpod doc-processor
+```
 
-    - Connect your GitHub repository to RunPod Serverless. RunPod will automatically build and deploy your worker whenever you push changes to your specified branch.
-    - For detailed instructions on setting up the GitHub integration, authorizing RunPod, and configuring your deployment, please refer to the [RunPod Deploy with GitHub Guide](https://docs.runpod.io/serverless/github-integration).
+## 📖 API Usage
 
-2.  **Manual Docker Build & Push:**
-    - For detailed instructions on building the Docker image locally and pushing it to a container registry, please see the [RunPod Serverless Get Started Guide](https://docs.runpod.io/serverless/get-started#step-6-build-and-push-your-docker-image).
-    - Once pushed, create a new Template or Endpoint in the RunPod Serverless UI and point it to the image in your container registry.
+### RunPod Serverless
 
-## Further Information
+```python
+import runpod
 
-- [RunPod Serverless Documentation](https://docs.runpod.io/serverless/overview)
-- [Python SDK](https://github.com/runpod/runpod-python)
-- [Base Docker Images](https://github.com/runpod/containers/tree/main/official-templates/base)
-- [Community Discord](https://discord.gg/cUpRmau42Vd)
+# Submit job
+job = runpod.submit({
+    "input": {
+        "document_url": "https://example.com/document.pdf"
+    }
+})
+
+# Get result
+result = runpod.get_job(job['id'])
+print(result['output']['content'])  # Processed document content
+```
+
+### FastAPI Service
+
+```bash
+# Health check
+curl http://localhost:8000/
+
+# Process document
+curl -X POST "http://localhost:8000/process" \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "document_url": "https://example.com/document.pdf"
+  }'
+```
+
+```python
+import httpx
+
+# Using Python client
+async with httpx.AsyncClient() as client:
+    response = await client.post(
+        "http://localhost:8000/process",
+        headers={"Authorization": "Bearer your-api-key"},
+        json={"document_url": "https://example.com/document.pdf"}
+    )
+    result = response.json()
+    print(result['result']['content'])
+```
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DEVICE_CAPABILITY` | `high` | Processing capability level (`low`, `medium`, `high`) |
+| `API_KEY` | `admin` | API authentication key for FastAPI service |
+| `SERVICE` | `runpod` | Service mode (`runpod` or `fastapi`) |
+| `WORKERS` | `1` | Number of FastAPI workers |
+
+### Device Capability Levels
+
+#### `low` - Minimal Resource Usage
+- ✅ Basic OCR and table extraction
+- ❌ Formula recognition disabled
+- ❌ Image classification disabled
+- ❌ Picture description disabled
+- 💡 Best for: Simple text extraction, resource-constrained environments
+
+#### `medium` - Balanced Processing
+- ✅ Code and formula enrichment
+- ✅ Advanced OCR and table structure
+- ❌ Image processing disabled
+- 💡 Best for: Most document types without heavy image analysis
+
+#### `high` - Full Processing (Default)
+- ✅ All enrichments enabled
+- ✅ Vision-language model for image description
+- ✅ Advanced table analysis with cell matching
+- ✅ High-resolution image generation
+- 💡 Best for: Complete document understanding, research papers
+
+## 📊 Response Format
+
+```json
+{
+  "content": "# Document Title\n\nProcessed content in markdown...",
+  "metadata": {
+    "source": "https://example.com/document.pdf",
+    "filename": "document.pdf",
+    "page_count": 10,
+    "export_format": "markdown",
+    "device_capability": "high",
+    "enrichments_applied": {
+      "code_enrichment": true,
+      "formula_enrichment": true,
+      "picture_classification": true,
+      "picture_description": true,
+      "table_structure": true,
+      "ocr": true
+    },
+    "enrichment_stats": {
+      "code_blocks": 5,
+      "formulas": 12,
+      "images": 8,
+      "tables": 3
+    }
+  },
+  "status": "success"
+}
+```
+
+## 🛠️ Development
+
+### Local Testing
+
+```bash
+# Test with sample input
+python handler.py
+
+# Custom test input
+echo '{"input": {"document_url": "your-url-here"}}' > test_input.json
+python handler.py
+```
+
+### Model Management
+
+```python
+# Download all models (required for first run)
+python preloader.py
+
+# Models are stored in ./models/ directory
+# Includes: layout detection, table extraction, OCR, vision models
+```
+
+### Dependencies
+
+Core dependencies:
+- `docling` - Document processing framework
+- `fastapi` - Web framework for API service
+- `runpod` - Serverless platform integration
+- `httpx` - HTTP client for document downloading
+- `uvicorn` - ASGI server
+
+## 🔧 System Requirements
+
+### Minimum Requirements
+- **Memory**: 8GB RAM
+- **Storage**: 10GB for models
+- **Python**: 3.12+
+
+### Recommended for GPU Acceleration
+- **GPU**: NVIDIA GPU with CUDA support
+- **VRAM**: 8GB+ for full capability mode
+- **CUDA**: 12.6+ (included in Docker image)
+
+## 📝 Example Use Cases
+
+### Research Paper Processing
+```python
+# Process arXiv paper
+result = process_document("http://arxiv.org/pdf/1706.03762")
+# Extracts: formulas, tables, figures, code snippets, references
+```
+
+### Business Document Analysis
+```python
+# Process financial reports, contracts, presentations
+result = process_document("https://company.com/annual-report.pdf")
+# Extracts: structured tables, charts, key metrics
+```
+
+### Multi-format Conversion
+```python
+# Convert between formats while preserving structure
+# PDF → Markdown, DOCX → HTML, etc.
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test with different document types
+5. Submit a pull request
+
+## 📄 License
+
+This project is part of the larger application ecosystem. See the main repository for license information.
+
+## 🔗 Related Links
+
+- [Docling Documentation](https://github.com/DS4SD/docling)
+- [RunPod Platform](https://runpod.io/)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)

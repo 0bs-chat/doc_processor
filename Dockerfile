@@ -18,16 +18,20 @@ RUN apt-get update && apt-get install -y \
 
 # Install dependencies
 ADD requirements.txt .
-ADD preloader.py .
-ADD processor.py .
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
-RUN uv pip install --upgrade -r /requirements.txt --no-cache-dir --system && uv run /preloader.py
+RUN uv pip install --upgrade -r /requirements.txt --no-cache-dir --system
 
 # Add application files
 ADD app.py .
+ADD processor.py .
+ADD handler.py .
+ADD test_input.json .
+ADD models/ .
 
-CMD uv run /app.py
+ENV DEVICE_CAPABILITY=high
+ENV SERVICE=runpod
+CMD if [ "$SERVICE" = "runpod" ]; then uv run /handler.py; else uv run /app.py; fi
 
 # Build and push commands:
-# sudo docker build --platform linux/amd64 --tag mantrakp04/doc_processor:v1 . && sudo docker push mantrakp04/doc_processor:v1
-# sudo docker run -it --runtime=nvidia -p 7860:7860 --rm mantrakp04/doc_processor:v1 /bin/bash -c 'tail -f /dev/null'
+# sudo docker build --platform linux/amd64 --tag mantrakp04/doc_processor:v2 . && sudo docker push mantrakp04/doc_processor:v2
+# sudo docker run -it --runtime=nvidia -p 7860:7860 --rm mantrakp04/doc_processor:v2 /bin/bash -c 'tail -f /dev/null'

@@ -3,3 +3,4 @@ hf-transfer
 fastapi
 uvicorn
 httpx
+runpod

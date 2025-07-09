@@ -1,6 +1,24 @@
 import httpx
 from io import BytesIO
-from docling.document_converter import DocumentConverter, PdfFormatOption, ImageFormatOption
+from pathlib import Path
+from docling.document_converter import (
+    DocumentConverter, 
+    PdfFormatOption,
+    ImageFormatOption,
+    CsvFormatOption,
+    ExcelFormatOption,
+    WordFormatOption,
+    PowerpointFormatOption,
+    MarkdownFormatOption,
+    AsciiDocFormatOption,
+    HTMLFormatOption,
+    PatentUsptoFormatOption,
+    XMLJatsFormatOption,
+    AudioFormatOption,
+    FormatOption
+)
+from docling.backend.json.docling_json_backend import DoclingJSONBackend
+from docling.pipeline.simple_pipeline import SimplePipeline
 from docling_core.types.io import DocumentStream
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import (
@@ -9,9 +27,9 @@ from docling.datamodel.pipeline_options import (
     EasyOcrOptions,
     smolvlm_picture_description
 )
+from docling.pipeline.vlm_pipeline import VlmPipeline
 import os
 
-AUTO_DETECT_PLATFORMS = os.getenv("AUTO_DETECT_PLATFORMS", "false").lower() == "true"
 DEVICE_CAPABILITY = os.getenv("DEVICE_CAPABILITY", "high").lower()
 
 VALID_CAPABILITIES = {"low", "medium", "high"}
@@ -31,8 +49,12 @@ def _build_pipeline_options(capability: str) -> PdfFormatOption:
         pipeline_options.generate_picture_images = False
         pipeline_options.do_picture_classification = False
         pipeline_options.do_picture_description = False
-        pipeline_options.do_table_structure = False
-        pipeline_options.do_ocr = False
+        pipeline_options.do_table_structure = True
+        pipeline_options.do_ocr = True
+        pipeline_options.ocr_options = EasyOcrOptions(
+            force_full_page_ocr=False,
+            use_gpu=True,
+        )
     elif capability == "medium":
         # Keep most textual enrichments but skip vision heavy ones.
         pipeline_options.do_code_enrichment = True
@@ -43,8 +65,8 @@ def _build_pipeline_options(capability: str) -> PdfFormatOption:
         pipeline_options.do_table_structure = True
         pipeline_options.do_ocr = True
         pipeline_options.ocr_options = EasyOcrOptions(
-            force_full_page_ocr=False,
-            use_gpu=False,
+            force_full_page_ocr=True,
+            use_gpu=True,
         )
     else:  # "high"
         # Full-fat experience with all enrichments switched on.
@@ -70,10 +92,39 @@ def create_converter() -> DocumentConverter:
     """Create a DocumentConverter configured from environment variables."""
 
     pipeline_options = _build_pipeline_options(DEVICE_CAPABILITY)
+    artifacts_path = Path("./models")
 
     format_options = {
-        InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options),
-        InputFormat.IMAGE: ImageFormatOption(pipeline_options=pipeline_options),
+        # PDF with custom pipeline options
+        InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options, artifacts_path=artifacts_path),
+        
+        # Image with VLM pipeline
+        InputFormat.IMAGE: ImageFormatOption(pipeline_cls=VlmPipeline, artifacts_path=artifacts_path),
+        
+        # Document formats with default configs but custom artifacts path
+        InputFormat.CSV: CsvFormatOption(artifacts_path=artifacts_path),
+        InputFormat.XLSX: ExcelFormatOption(artifacts_path=artifacts_path),
+        InputFormat.DOCX: WordFormatOption(artifacts_path=artifacts_path),
+        InputFormat.PPTX: PowerpointFormatOption(artifacts_path=artifacts_path),
+        
+        # Text/markup formats with default configs but custom artifacts path
+        InputFormat.MD: MarkdownFormatOption(artifacts_path=artifacts_path),
+        InputFormat.ASCIIDOC: AsciiDocFormatOption(artifacts_path=artifacts_path),
+        InputFormat.HTML: HTMLFormatOption(artifacts_path=artifacts_path),
+        
+        # XML formats with default configs but custom artifacts path
+        InputFormat.XML_USPTO: PatentUsptoFormatOption(artifacts_path=artifacts_path),
+        InputFormat.XML_JATS: XMLJatsFormatOption(artifacts_path=artifacts_path),
+        
+        # JSON format with default config but custom artifacts path
+        InputFormat.JSON_DOCLING: FormatOption(
+            pipeline_cls=SimplePipeline, 
+            backend=DoclingJSONBackend,
+            artifacts_path=artifacts_path
+        ),
+        
+        # Audio format with default config but custom artifacts path
+        InputFormat.AUDIO: AudioFormatOption(artifacts_path=artifacts_path),
     }
 
     return DocumentConverter(format_options=format_options)

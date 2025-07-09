@@ -1,0 +1,30 @@
+[project]
+name = "doc-processor"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "BarrelOfLube", email = "mantrakp@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+doc-processor = "doc_processor:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[dependency-groups]
+dev = [
+    "docling>=2.40.0",
+    "fastapi>=0.116.0",
+    "hf-transfer>=0.1.9",
+    "httpx>=0.28.1",
+    "runpod>=0.7.6",
+    "uvicorn>=0.35.0",
+]
