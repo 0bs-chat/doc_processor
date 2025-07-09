@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y \
     libgomp1 \
     libgraphicsmagick1-dev \
     libatlas-base-dev \
+    tesseract-ocr \
+    libtesseract-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
