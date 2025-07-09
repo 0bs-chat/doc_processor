@@ -25,6 +25,7 @@ from docling.datamodel.pipeline_options import (
     PdfPipelineOptions,
     TableFormerMode,
     EasyOcrOptions,
+    TesseractCliOcrOptions,
     smolvlm_picture_description
 )
 from docling.pipeline.vlm_pipeline import VlmPipeline
@@ -51,9 +52,8 @@ def _build_pipeline_options(capability: str) -> PdfFormatOption:
         pipeline_options.do_picture_description = False
         pipeline_options.do_table_structure = True
         pipeline_options.do_ocr = True
-        pipeline_options.ocr_options = EasyOcrOptions(
-            force_full_page_ocr=False,
-            use_gpu=True,
+        pipeline_options.ocr_options = TesseractCliOcrOptions(
+            force_full_page_ocr=True,
         )
     elif capability == "medium":
         # Keep most textual enrichments but skip vision heavy ones.
@@ -64,9 +64,8 @@ def _build_pipeline_options(capability: str) -> PdfFormatOption:
         pipeline_options.do_picture_description = False
         pipeline_options.do_table_structure = True
         pipeline_options.do_ocr = True
-        pipeline_options.ocr_options = EasyOcrOptions(
+        pipeline_options.ocr_options = TesseractCliOcrOptions(
             force_full_page_ocr=True,
-            use_gpu=True,
         )
     else:  # "high"
         # Full-fat experience with all enrichments switched on.
@@ -81,9 +80,8 @@ def _build_pipeline_options(capability: str) -> PdfFormatOption:
         pipeline_options.table_structure_options.do_cell_matching = True
         pipeline_options.table_structure_options.mode = TableFormerMode.ACCURATE
         pipeline_options.do_ocr = True
-        pipeline_options.ocr_options = EasyOcrOptions(
+        pipeline_options.ocr_options = TesseractCliOcrOptions(
             force_full_page_ocr=True,
-            use_gpu=True,
         )
 
     return pipeline_options
@@ -97,34 +95,6 @@ def create_converter() -> DocumentConverter:
     format_options = {
         # PDF with custom pipeline options
         InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options, artifacts_path=artifacts_path),
-        
-        # Image with VLM pipeline
-        InputFormat.IMAGE: ImageFormatOption(pipeline_cls=VlmPipeline, artifacts_path=artifacts_path),
-        
-        # Document formats with default configs but custom artifacts path
-        InputFormat.CSV: CsvFormatOption(artifacts_path=artifacts_path),
-        InputFormat.XLSX: ExcelFormatOption(artifacts_path=artifacts_path),
-        InputFormat.DOCX: WordFormatOption(artifacts_path=artifacts_path),
-        InputFormat.PPTX: PowerpointFormatOption(artifacts_path=artifacts_path),
-        
-        # Text/markup formats with default configs but custom artifacts path
-        InputFormat.MD: MarkdownFormatOption(artifacts_path=artifacts_path),
-        InputFormat.ASCIIDOC: AsciiDocFormatOption(artifacts_path=artifacts_path),
-        InputFormat.HTML: HTMLFormatOption(artifacts_path=artifacts_path),
-        
-        # XML formats with default configs but custom artifacts path
-        InputFormat.XML_USPTO: PatentUsptoFormatOption(artifacts_path=artifacts_path),
-        InputFormat.XML_JATS: XMLJatsFormatOption(artifacts_path=artifacts_path),
-        
-        # JSON format with default config but custom artifacts path
-        InputFormat.JSON_DOCLING: FormatOption(
-            pipeline_cls=SimplePipeline, 
-            backend=DoclingJSONBackend,
-            artifacts_path=artifacts_path
-        ),
-        
-        # Audio format with default config but custom artifacts path
-        InputFormat.AUDIO: AudioFormatOption(artifacts_path=artifacts_path),
     }
 
     return DocumentConverter(format_options=format_options)

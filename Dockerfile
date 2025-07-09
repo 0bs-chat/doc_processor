@@ -26,12 +26,11 @@ ADD app.py .
 ADD processor.py .
 ADD handler.py .
 ADD test_input.json .
-ADD models/ .
 
-ENV DEVICE_CAPABILITY=high
+ENV DEVICE_CAPABILITY=medium
 ENV SERVICE=runpod
 CMD if [ "$SERVICE" = "runpod" ]; then uv run /handler.py; else uv run /app.py; fi
 
 # Build and push commands:
 # sudo docker build --platform linux/amd64 --tag mantrakp04/doc_processor:v2 . && sudo docker push mantrakp04/doc_processor:v2
-# sudo docker run -it --runtime=nvidia -p 7860:7860 --rm mantrakp04/doc_processor:v2 /bin/bash -c 'tail -f /dev/null'
+# sudo docker run -it --runtime=nvidia mantrakp04/doc_processor:v2 /bin/bash -c 'tail -f /dev/null'
