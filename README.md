@@ -5,6 +5,7 @@ A powerful document processing service built on [Docling](https://github.com/DS4
 ## ✨ Features
 
 ### Document Format Support
+
 - **PDF Documents** - Advanced processing with OCR, table extraction, and layout analysis
 - **Microsoft Office** - Word (DOCX), PowerPoint (PPTX), Excel (XLSX)
 - **Images** - PNG, JPEG with vision-language model processing
@@ -14,6 +15,7 @@ A powerful document processing service built on [Docling](https://github.com/DS4
 - **Audio** - Audio file processing
 
 ### Advanced Processing Capabilities
+
 - **🔍 OCR** - Text extraction from images and scanned documents
 - **📊 Table Structure** - Intelligent table detection and extraction
 - **🧮 Formula Recognition** - Mathematical formula detection and conversion
@@ -22,6 +24,7 @@ A powerful document processing service built on [Docling](https://github.com/DS4
 - **📄 Layout Analysis** - Document structure understanding
 
 ### Output Formats
+
 - **Markdown** - Clean, structured markdown output
 - **HTML** - Rich HTML with preserved formatting
 - **JSON** - Structured data with metadata
@@ -30,6 +33,7 @@ A powerful document processing service built on [Docling](https://github.com/DS4
 ## 🚀 Deployment Options
 
 ### 1. RunPod Serverless (Recommended)
+
 Deploy as a serverless worker on RunPod for automatic scaling and GPU acceleration.
 
 ```bash
@@ -39,6 +43,7 @@ docker push your-registry/doc-processor
 ```
 
 ### 2. FastAPI Service
+
 Run as a standalone web service with REST API.
 
 ```bash
@@ -53,6 +58,7 @@ python app.py
 ```
 
 ### 3. Docker Container
+
 ```bash
 # Build
 docker build -t doc-processor .
@@ -116,16 +122,17 @@ async with httpx.AsyncClient() as client:
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DEVICE_CAPABILITY` | `high` | Processing capability level (`low`, `medium`, `high`) |
-| `API_KEY` | `admin` | API authentication key for FastAPI service |
-| `SERVICE` | `runpod` | Service mode (`runpod` or `fastapi`) |
-| `WORKERS` | `1` | Number of FastAPI workers |
+| Variable            | Default  | Description                                           |
+| ------------------- | -------- | ----------------------------------------------------- |
+| `DEVICE_CAPABILITY` | `high`   | Processing capability level (`low`, `medium`, `high`) |
+| `API_KEY`           | `admin`  | API authentication key for FastAPI service            |
+| `SERVICE`           | `runpod` | Service mode (`runpod` or `fastapi`)                  |
+| `WORKERS`           | `1`      | Number of FastAPI workers                             |
 
 ### Device Capability Levels
 
 #### `low` - Minimal Resource Usage
+
 - ✅ Basic OCR and table extraction
 - ❌ Formula recognition disabled
 - ❌ Image classification disabled
@@ -133,12 +140,14 @@ async with httpx.AsyncClient() as client:
 - 💡 Best for: Simple text extraction, resource-constrained environments
 
 #### `medium` - Balanced Processing
+
 - ✅ Code and formula enrichment
 - ✅ Advanced OCR and table structure
 - ❌ Image processing disabled
 - 💡 Best for: Most document types without heavy image analysis
 
 #### `high` - Full Processing (Default)
+
 - ✅ All enrichments enabled
 - ✅ Vision-language model for image description
 - ✅ Advanced table analysis with cell matching
@@ -201,6 +210,7 @@ python preloader.py
 ### Dependencies
 
 Core dependencies:
+
 - `docling` - Document processing framework
 - `fastapi` - Web framework for API service
 - `runpod` - Serverless platform integration
@@ -210,11 +220,13 @@ Core dependencies:
 ## 🔧 System Requirements
 
 ### Minimum Requirements
+
 - **Memory**: 8GB RAM
 - **Storage**: 10GB for models
 - **Python**: 3.12+
 
 ### Recommended for GPU Acceleration
+
 - **GPU**: NVIDIA GPU with CUDA support
 - **VRAM**: 8GB+ for full capability mode
 - **CUDA**: 12.6+ (included in Docker image)
@@ -222,6 +234,7 @@ Core dependencies:
 ## 📝 Example Use Cases
 
 ### Research Paper Processing
+
 ```python
 # Process arXiv paper
 result = process_document("http://arxiv.org/pdf/1706.03762")
@@ -229,6 +242,7 @@ result = process_document("http://arxiv.org/pdf/1706.03762")
 ```
 
 ### Business Document Analysis
+
 ```python
 # Process financial reports, contracts, presentations
 result = process_document("https://company.com/annual-report.pdf")
@@ -236,6 +250,7 @@ result = process_document("https://company.com/annual-report.pdf")
 ```
 
 ### Multi-format Conversion
+
 ```python
 # Convert between formats while preserving structure
 # PDF → Markdown, DOCX → HTML, etc.
