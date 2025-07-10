@@ -4,3 +4,4 @@ fastapi
 uvicorn
 httpx
 runpod
+openai-whisper
