@@ -1,4 +1,4 @@
-# fly.toml app configuration file generated for doc-processor-holy-surf-5036 on 2025-06-11T11:19:42-07:00
+# fly.toml app configuration file generated for doc-processor-holy-surf-5036 on 2025-07-13T05:20:55-07:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
@@ -8,19 +8,22 @@ primary_region = 'ord'
 
 [build]
 
+[env]
+  SERVICE = 'fastapi'
+  WORKERS = '4'
+
 [[mounts]]
   source = 'cache'
   destination = '/root/.cache'
+  initial_size = '5gb'
 
 [http_service]
-  internal_port = 7860
+  internal_port = 8000
   force_https = true
-  auto_stop_machines = 'stop'
+  auto_stop_machines = 'suspend'
   auto_start_machines = true
   min_machines_running = 0
   processes = ['app']
 
 [[vm]]
-  size = "performance-8x"
-  memory = "16gb"
-  gpu_kind = "l40s"
+  size = 'l40s'

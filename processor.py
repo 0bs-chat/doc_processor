@@ -90,11 +90,10 @@ def create_converter() -> DocumentConverter:
     """Create a DocumentConverter configured from environment variables."""
 
     pipeline_options = _build_pipeline_options(DEVICE_CAPABILITY)
-    artifacts_path = Path("./models")
 
     format_options = {
         # PDF with custom pipeline options
-        InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options, artifacts_path=artifacts_path),
+        InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options),
     }
 
     return DocumentConverter(format_options=format_options)
