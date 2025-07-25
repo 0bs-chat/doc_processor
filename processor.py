@@ -94,6 +94,7 @@ def create_converter() -> DocumentConverter:
     format_options = {
         # PDF with custom pipeline options
         InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options),
+        InputFormat.IMAGE: ImageFormatOption(pipeline_options=pipeline_options),
     }
 
     return DocumentConverter(format_options=format_options)
